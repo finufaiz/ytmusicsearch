@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Music Search</title>
     <style>
-        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
@@ -20,22 +20,18 @@
 
         .container {
             text-align: center;
-            /* Center-aligns content */
             width: 100%;
             max-width: 400px;
-            /* Limit the container size for readability */
             padding: 20px;
             box-sizing: border-box;
         }
 
-        /* Heading Styles */
         h1 {
             color: #333;
             margin-bottom: 20px;
             font-size: 2rem;
         }
 
-        /* Form Styles */
         form {
             background-color: #fff;
             padding: 20px;
@@ -55,7 +51,7 @@
 
         input[type="text"] {
             padding: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             font-size: 1rem;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -63,9 +59,36 @@
             box-sizing: border-box;
         }
 
+        .suggestions {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+            position: absolute;
+            width: calc(100% - 40px);
+            /* Matches input width */
+            z-index: 1000;
+            text-align: left;
+            top: 100%;
+            /* Positions below input */
+            left: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+
+        .suggestions div {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestions div:hover {
+            background: #f0f0f0;
+        }
+
         button[type="submit"] {
             background-color: #ff0000;
-            /* YouTube Red */
             color: #fff;
             padding: 12px 20px;
             font-size: 1.1rem;
@@ -77,51 +100,58 @@
 
         button[type="submit"]:hover {
             background-color: #cc0000;
-            /* Darker Red */
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-                /* Reduce padding on small screens */
-            }
-
-            .container {
-                padding: 15px;
-                width: 100%;
-                max-width: 100%;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-                /* Adjust heading font size on mobile */
-            }
-
-            form {
-                padding: 15px;
-            }
-
-            input[type="text"] {
-                padding: 12px;
-                font-size: 1rem;
-            }
-
-            button[type="submit"] {
-                padding: 12px 15px;
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>YouTube Music Search</h1>
         <form action="https://music.youtube.com/search" method="get" target="_blank">
             <label for="search">Search for Music:</label>
-            <input type="text" id="search" name="q" required>
+            <div style="position: relative; width: 100%;">
+                <input type="text" id="search" name="q" autocomplete="off" required>
+                <div class="suggestions" id="suggestions"></div>
+            </div>
             <button type="submit">Search</button>
         </form>
     </div>
+    <script>
+        document.getElementById("search").addEventListener("input", function () {
+            let query = this.value;
+            let suggestionsBox = document.getElementById("suggestions");
+            suggestionsBox.innerHTML = "";
+
+            if (query.length > 0) {
+                let script = document.createElement("script");
+                script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}&callback=handleSuggestions`;
+                document.body.appendChild(script);
+            } else {
+                suggestionsBox.style.display = "none";
+            }
+        });
+
+        function handleSuggestions(data) {
+            let suggestionsBox = document.getElementById("suggestions");
+            suggestionsBox.innerHTML = "";
+            let suggestions = data[1];
+
+            if (suggestions.length) {
+                suggestionsBox.style.display = "block";
+                suggestions.forEach(suggestion => {
+                    let text = Array.isArray(suggestion) ? suggestion[0] : suggestion; // Extract only text
+                    let div = document.createElement("div");
+                    div.textContent = text;
+                    div.addEventListener("click", function () {
+                        document.getElementById("search").value = text;
+                        suggestionsBox.style.display = "none";
+                    });
+                    suggestionsBox.appendChild(div);
+                });
+            }
+        }
+
+    </script>
 </body>
+
 </html>
