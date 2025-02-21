@@ -117,19 +117,31 @@
         </form>
     </div>
     <script>
+        let previousScript = null; // Store the last script tag
+
         document.getElementById("search").addEventListener("input", function () {
             let query = this.value;
             let suggestionsBox = document.getElementById("suggestions");
             suggestionsBox.innerHTML = "";
 
             if (query.length > 0) {
+                // Remove the previous script tag if it exists
+                if (previousScript) {
+                    previousScript.remove();
+                }
+
+                // Create a new script tag
                 let script = document.createElement("script");
                 script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}&callback=handleSuggestions`;
                 document.body.appendChild(script);
+
+                // Store the current script tag for future removal
+                previousScript = script;
             } else {
                 suggestionsBox.style.display = "none";
             }
         });
+
 
         function handleSuggestions(data) {
             let suggestionsBox = document.getElementById("suggestions");
